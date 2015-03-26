@@ -243,7 +243,10 @@ def test_update_membership_timeline():
 
 def test_delete_project_timeline():
     project = factories.ProjectFactory.create(name="test project timeline")
-    #TODO
+    history_services.take_snapshot(project, user=project.owner, delete=True)
+    user_timeline = service.get_timeline(project).order_by("-created")
+    assert user_timeline[0].event_type == "projects.project.delete"
+    assert user_timeline[0].data["project"]["id"] == project.id
 
 
 def test_delete_milestone_timeline():

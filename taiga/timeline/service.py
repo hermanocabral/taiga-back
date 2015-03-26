@@ -20,6 +20,7 @@ from functools import partial, wraps
 from django.contrib.contenttypes.models import ContentType
 
 from taiga.base.utils.db import get_typename_for_model_class
+from taiga.celery import app
 
 _timeline_impl_map = {}
 
@@ -57,6 +58,7 @@ def _add_to_objects_timeline(objects, instance:object, event_type:str, namespace
         _add_to_object_timeline(obj, instance, event_type, namespace, extra_data)
 
 
+@app.task
 def push_to_timeline(objects, instance:object, event_type:str, namespace:str="default", extra_data:dict={}):
     if isinstance(objects, Model):
         _add_to_object_timeline(objects, instance, event_type, namespace, extra_data)

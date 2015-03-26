@@ -18,14 +18,14 @@ from django.contrib.contenttypes.models import ContentType
 
 from taiga.base import response
 from taiga.base.api.utils import get_object_or_404
-from taiga.base.api import GenericViewSet
+from taiga.base.api import ReadOnlyListViewSet
 
 from . import serializers
 from . import service
 from . import permissions
 
 
-class TimelineViewSet(GenericViewSet):
+class TimelineViewSet(ReadOnlyListViewSet):
     serializer_class = serializers.TimelineSerializer
 
     content_type = None

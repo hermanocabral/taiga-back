@@ -122,6 +122,15 @@ def test_create_wiki_page_timeline():
     assert project_timeline[0].data["user"]["name"] == page.owner.get_full_name()
 
 
+def test_create_membership_timeline():
+    membership = factories.MembershipFactory.create()
+    project_timeline = service.get_timeline(membership.project).order_by("-created")
+    assert project_timeline[0].event_type == "projects.membership.create"
+    assert project_timeline[0].data["project"]["id"] == membership.project.id
+    assert project_timeline[0].data["user"]["id"] == membership.user.id
+    assert project_timeline[0].data["user"]["name"] == membership.user.get_full_name()
+
+
 def test_update_project_timeline():
     project = factories.ProjectFactory.create(name="test project timeline")
     history_services.take_snapshot(project, user=project.owner)
@@ -200,6 +209,23 @@ def test_update_wiki_page_timeline():
     assert project_timeline[0].data["values_diff"]["slug"][1] == "test wiki page timeline updated"
 
 
+def test_update_membership_timeline():
+    user_1 = factories.UserFactory.create()
+    user_2 = factories.UserFactory.create()
+    membership = factories.MembershipFactory.create(user=user_1)
+    membership.user = user_2
+    membership.save()
+    project_timeline = service.get_timeline(membership.project).order_by("-created")
+    assert project_timeline[0].event_type == "projects.membership.delete"
+    assert project_timeline[0].data["project"]["id"] == membership.project.id
+    assert project_timeline[0].data["user"]["id"] == user_1.id
+    assert project_timeline[0].data["user"]["name"] == user_1.get_full_name()
+    assert project_timeline[1].event_type == "projects.membership.create"
+    assert project_timeline[1].data["project"]["id"] == membership.project.id
+    assert project_timeline[1].data["user"]["id"] == user_2.id
+    assert project_timeline[1].data["user"]["name"] == user_2.get_full_name()
+
+
 def test_delete_project_timeline():
     project = factories.ProjectFactory.create(name="test project timeline")
     #TODO
@@ -253,3 +279,13 @@ def test_comment_user_story_timeline():
     assert project_timeline[0].event_type == "userstories.userstory.change"
     assert project_timeline[0].data["userstory"]["subject"] == "test us timeline"
     assert project_timeline[0].data["comment"] == "testing comment"
+
+
+def test_delete_membership_timeline():
+    membership = factories.MembershipFactory.create()
+    membership.delete()
+    project_timeline = service.get_timeline(membership.project).order_by("-created")
+    assert project_timeline[0].event_type == "projects.membership.delete"
+    assert project_timeline[0].data["project"]["id"] == membership.project.id
+    assert project_timeline[0].data["user"]["id"] == membership.user.id
+    assert project_timeline[0].data["user"]["name"] == membership.user.get_full_name()

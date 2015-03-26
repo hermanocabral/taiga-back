@@ -126,3 +126,21 @@ def wiki_page_timeline(instance, extra_data={}):
     }
     result.update(extra_data)
     return result
+
+
+@register_timeline_implementation("projects.membership", "create")
+@register_timeline_implementation("projects.membership", "delete")
+def membership_create_timeline(instance, extra_data={}):
+    result =  {
+        "user": {
+            "id": instance.user.pk,
+            "name": instance.user.get_full_name(),
+        },
+        "project": {
+            "id": instance.project.pk,
+            "slug": instance.project.slug,
+            "name": instance.project.name,
+        },
+    }
+    result.update(extra_data)
+    return result

@@ -49,3 +49,25 @@ def on_new_history_entry(sender, instance, created, **kwargs):
     }
 
     push_to_timeline(project, obj, event_type, extra_data=extra_data)
+
+
+def create_membership_push_to_timeline(sender, instance, **kwargs):
+    # Creating new membership with associated user
+    if not instance.pk and instance.user:
+        push_to_timeline(instance.project, instance, "create")
+
+    #Updating existing membership
+    elif instance.pk:
+        prev_instance = sender.objects.get(pk=instance.pk)
+        if instance.user != prev_instance.user:
+            # The new member
+            print("CREATE", instance.user.id)
+            push_to_timeline(instance.project, instance, "create")
+            # If we are updating the old user is removed from project
+            if prev_instance.user:
+                print("DELETE", prev_instance.user.id)
+                push_to_timeline(instance.project, prev_instance, "delete")
+
+
+def delete_membership_push_to_timeline(sender, instance, **kwargs):
+    push_to_timeline(instance.project, instance, "delete")

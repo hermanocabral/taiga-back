@@ -28,3 +28,7 @@ class TimelineAppConfig(AppConfig):
 
     def ready(self):
         signals.post_save.connect(handlers.on_new_history_entry, sender=HistoryEntry, dispatch_uid="timeline")
+        signals.pre_save.connect(handlers.create_membership_push_to_timeline,
+                                                 sender=apps.get_model("projects", "Membership"))
+        signals.post_delete.connect(handlers.delete_membership_push_to_timeline,
+                                                sender=apps.get_model("projects", "Membership"))

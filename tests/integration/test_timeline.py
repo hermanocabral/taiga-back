@@ -243,3 +243,13 @@ def test_delete_wiki_page_timeline():
     project_timeline = service.get_timeline(page.project).order_by("-created")
     assert project_timeline[0].event_type == "wiki.wikipage.delete"
     assert project_timeline[0].data["wiki_page"]["slug"] == "test wiki page timeline"
+
+
+def test_comment_user_story_timeline():
+    user_story = factories.UserStoryFactory.create(subject="test us timeline")
+    history_services.take_snapshot(user_story, user=user_story.owner)
+    history_services.take_snapshot(user_story, user=user_story.owner, comment="testing comment")
+    project_timeline = service.get_timeline(user_story.project).order_by("-created")
+    assert project_timeline[0].event_type == "userstories.userstory.change"
+    assert project_timeline[0].data["userstory"]["subject"] == "test us timeline"
+    assert project_timeline[0].data["comment"] == "testing comment"

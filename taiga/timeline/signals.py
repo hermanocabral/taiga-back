@@ -44,7 +44,8 @@ def on_new_history_entry(sender, instance, created, **kwargs):
 
     extra_data = {
         "values_diff": instance.values_diff,
-        "user": instance.user
+        "user": instance.user,
+        "comment": instance.comment,
     }
 
     push_to_timeline(project, obj, event_type, extra_data=extra_data)

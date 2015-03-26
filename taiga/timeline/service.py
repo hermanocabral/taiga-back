@@ -73,7 +73,7 @@ def get_timeline(obj, namespace="default"):
     from .models import Timeline
 
     ct = ContentType.objects.get_for_model(obj.__class__)
-    return Timeline.objects.filter(content_type=ct, object_id=obj.pk, namespace=namespace)
+    return Timeline.objects.filter(content_type=ct, object_id=obj.pk, namespace=namespace).order_by("-created")
 
 
 def register_timeline_implementation(typename:str, event_type:str, fn=None):

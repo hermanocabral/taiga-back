@@ -16,6 +16,7 @@
 
 from taiga.projects.history import services as history_services
 from taiga.projects.models import Project
+from taiga.users.models import User
 from taiga.projects.history.choices import HistoryType
 from taiga.timeline.service import push_to_timeline
 
@@ -48,26 +49,31 @@ def on_new_history_entry(sender, instance, created, **kwargs):
         "comment": instance.comment,
     }
 
+    owner = User.objects.get(id=instance.user["pk"])
+
     push_to_timeline(project, obj, event_type, extra_data=extra_data)
+    push_to_timeline(owner, obj, event_type, extra_data=extra_data)
 
 
 def create_membership_push_to_timeline(sender, instance, **kwargs):
     # Creating new membership with associated user
     if not instance.pk and instance.user:
         push_to_timeline(instance.project, instance, "create")
+        push_to_timeline(instance.user, instance, "create")
 
     #Updating existing membership
     elif instance.pk:
         prev_instance = sender.objects.get(pk=instance.pk)
         if instance.user != prev_instance.user:
             # The new member
-            print("CREATE", instance.user.id)
             push_to_timeline(instance.project, instance, "create")
+            push_to_timeline(instance.user, instance, "create")
             # If we are updating the old user is removed from project
             if prev_instance.user:
-                print("DELETE", prev_instance.user.id)
                 push_to_timeline(instance.project, prev_instance, "delete")
+                push_to_timeline(prev_instance.user, prev_instance, "delete")
 
 
 def delete_membership_push_to_timeline(sender, instance, **kwargs):
     push_to_timeline(instance.project, instance, "delete")
+    push_to_timeline(instance.user, instance, "delete")
